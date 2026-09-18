@@ -39,14 +39,14 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install build deps
-        run: |
-          uv venv .venv --python 3.13
-          uv pip install --python .venv/bin/python \
-            pip setuptools wheel \
-            torch==${{ inputs.torch_version }}+cu132 \
-            --index-url https://download.pytorch.org/whl/cu132 \
-            --index-strategy unsafe-best-match
+      - name: Create venv
+        run: uv venv .venv --python 3.13
+
+      - name: Install torch (cu132 index)
+        run: uv pip install --python .venv/bin/python "torch==${{ inputs.torch_version }}+cu132" --index-url https://download.pytorch.org/whl/cu132
+
+      - name: Install build tools (PyPI)
+        run: uv pip install --python .venv/bin/python pip setuptools wheel
 
       - name: Build wheel
         run: .venv/bin/pip wheel . --no-build-isolation --no-deps -w dist
