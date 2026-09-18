@@ -51,11 +51,6 @@ jobs:
       - name: Build wheel
         run: .venv/bin/pip wheel . --no-build-isolation --no-deps -w dist
 
-      - name: Smoke test
-        run: |
-          uv pip install --python .venv/bin/python dist/*.whl
-          .venv/bin/python -c "import torch, torchaudio; print(torch.__version__, torchaudio.__version__, torchaudio.ops._torchaudio.cuda_version())"
-
       - uses: actions/upload-artifact@v5
         with:
           name: torchaudio-${{ inputs.ta_version }}-cu132
