@@ -28,7 +28,7 @@ jobs:
       BUILD_VERSION: ${{ inputs.ta_version }}+cu132
     steps:
       - name: Container tooling
-        run: apt-get update && apt-get install -y --no-install-recommends git ninja-build jq
+        run: apt-get update && apt-get install -y --no-install-recommends git ninja-build jq curl ca-certificates
 
       - uses: actions/checkout@v5
         with:
@@ -43,9 +43,10 @@ jobs:
         run: |
           uv venv .venv --python 3.13
           uv pip install --python .venv/bin/python \
+            pip setuptools wheel \
             torch==${{ inputs.torch_version }}+cu132 \
-            --index-url https://download.pytorch.org/whl/cu132
-          uv pip install --python .venv/bin/python setuptools wheel
+            --index-url https://download.pytorch.org/whl/cu132 \
+            --index-strategy unsafe-best-match
 
       - name: Build wheel
         run: .venv/bin/pip wheel . --no-build-isolation --no-deps -w dist
@@ -53,10 +54,9 @@ jobs:
       - name: Smoke test
         run: |
           uv pip install --python .venv/bin/python dist/*.whl
-          .venv/bin/python -c "import torch, torchaudio; \
-            print(torch.__version__, torchaudio.__version__, torchaudio.ops._torchaudio.cuda_version())"
+          .venv/bin/python -c "import torch, torchaudio; print(torch.__version__, torchaudio.__version__, torchaudio.ops._torchaudio.cuda_version())"
 
       - uses: actions/upload-artifact@v5
         with:
-          name: torchaudio-${{ inputs.ta_version }}+cu132
+          name: torchaudio-${{ inputs.ta_version }}-cu132
           path: dist/*.whl
